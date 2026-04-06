@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="元素記号 高校">
+<title>元素記号トレーニング 高校生</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --accent: #5C6BC0;
+    --accent-dark: #283593;
+    --coral: #E53935;
+    --bg: #F0F2FF;
+    --text: #0A0E2E;
+    --muted: #6B70A0;
+    --shadow: 0 4px 20px rgba(40,53,147,0.10);
+    --radius: 20px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; background: var(--bg); font-family: 'Noto Sans JP', sans-serif; color: var(--text); overflow: hidden; }
+  .screen { display: none; flex-direction: column; height: 100vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .screen.active { display: flex; }
+
+  #home { background: linear-gradient(160deg, #050A30 0%, #283593 50%, #5C6BC0 100%); color: white; align-items: center; }
+  .home-top { width: 100%; padding: 60px 24px 28px; text-align: center; }
+  .home-top .app-icon { font-size: 64px; margin-bottom: 8px; }
+  .home-top h1 { font-family: 'Nunito', sans-serif; font-size: 26px; font-weight: 900; }
+  .home-top p { font-size: 13px; opacity: 0.8; margin-top: 4px; }
+  .home-cards { width: 100%; padding: 0 16px 28px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .stat-mini { background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border-radius: 16px; padding: 16px; text-align: center; }
+  .stat-mini .num { font-family: 'Nunito', sans-serif; font-size: 28px; font-weight: 900; }
+  .stat-mini .label { font-size: 11px; opacity: 0.85; margin-top: 2px; }
+  .home-btns { width: 100%; padding: 0 16px 32px; display: flex; flex-direction: column; gap: 12px; }
+  .btn-main { border: none; border-radius: 18px; padding: 18px; font-size: 17px; font-family: 'Nunito', sans-serif; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: transform .15s, opacity .15s; }
+  .btn-main:active { transform: scale(0.97); opacity: 0.9; }
+  .btn-train { background: white; color: var(--accent-dark); }
+  .btn-weak  { background: var(--coral); color: white; }
+  .btn-stats { background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.4); }
+  .btn-list  { background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.4); }
+
+  /* QUIZ */
+  #quiz { background: var(--bg); }
+  .quiz-header { display: flex; align-items: center; padding: 56px 16px 16px; gap: 12px; }
+  .back-btn { width: 40px; height: 40px; border-radius: 12px; border: none; background: white; box-shadow: var(--shadow); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .quiz-title { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 16px; flex: 1; }
+  .quiz-mode-tabs { display: flex; gap: 8px; padding: 0 16px 12px; }
+  .mode-tab { flex: 1; border: 2px solid #C5CAE9; background: white; border-radius: 10px; padding: 8px; font-size: 12px; font-family: 'Nunito', sans-serif; font-weight: 700; cursor: pointer; color: var(--muted); }
+  .mode-tab.active { background: var(--accent-dark); color: white; border-color: var(--accent-dark); }
+  .quiz-prog-wrap { padding: 0 16px 16px; }
+  .prog-bar { height: 8px; background: #C5CAE9; border-radius: 99px; overflow: hidden; }
+  .prog-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-dark)); border-radius: 99px; transition: width .4s ease; }
+  .prog-label { font-size: 12px; color: var(--muted); margin-top: 4px; text-align: right; }
+  .card-wrap { padding: 0 16px; flex: 1; }
+  .element-card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 28px 24px; text-align: center; margin-bottom: 20px; }
+  .q-label { font-size: 12px; color: var(--muted); letter-spacing: 1px; margin-bottom: 10px; }
+  .element-symbol { font-family: 'Nunito', sans-serif; font-size: 72px; font-weight: 900; color: var(--accent-dark); line-height: 1; }
+  .element-name-big { font-family: 'Nunito', sans-serif; font-size: 42px; font-weight: 900; color: var(--accent-dark); line-height: 1.1; }
+  .element-sub { font-size: 13px; color: var(--muted); margin-top: 8px; }
+  .choices { display: flex; flex-direction: column; gap: 10px; padding: 0 16px 32px; }
+  .choice-btn { border: 2.5px solid #C5CAE9; background: white; border-radius: 14px; padding: 14px 20px; font-size: 15px; font-family: 'Nunito', sans-serif; font-weight: 700; cursor: pointer; text-align: center; transition: all .15s; }
+  .choice-btn:active { transform: scale(0.98); }
+  .choice-btn.correct { background: #E8F5E9; border-color: #66BB6A; color: #2E7D32; }
+  .choice-btn.wrong   { background: #FFEBEE; border-color: #EF5350; color: #C62828; }
+  .choice-btn.reveal  { background: #E8F5E9; border-color: #66BB6A; color: #2E7D32; }
+
+  /* RESULT */
+  #result { background: var(--bg); align-items: center; justify-content: center; }
+  .result-card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 40px 32px; margin: 24px; text-align: center; width: calc(100% - 48px); }
+  .result-emoji { font-size: 64px; margin-bottom: 12px; }
+  .result-title { font-family: 'Nunito', sans-serif; font-size: 24px; font-weight: 900; margin-bottom: 8px; }
+  .result-score { font-size: 48px; font-family: 'Nunito', sans-serif; font-weight: 900; color: var(--accent-dark); }
+  .result-sub { font-size: 14px; color: var(--muted); margin-bottom: 24px; }
+  .result-btns { display: flex; flex-direction: column; gap: 12px; }
+  .btn-sm { border: none; border-radius: 14px; padding: 14px; font-size: 15px; font-family: 'Nunito', sans-serif; font-weight: 700; cursor: pointer; }
+  .btn-sm:active { transform: scale(0.97); }
+  .btn-again { background: var(--accent-dark); color: white; }
+  .btn-home2 { background: #E8EAF6; color: var(--text); }
+
+  /* STATS */
+  #stats { background: var(--bg); }
+  .stats-header { display: flex; align-items: center; padding: 56px 16px 16px; gap: 12px; }
+  .stats-title { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 20px; }
+  .stats-body { padding: 0 16px 32px; display: flex; flex-direction: column; gap: 14px; }
+  .stats-section { background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; }
+  .stats-section h3 { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 14px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 14px; }
+  .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #E8EAF6; }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-row .s-label { font-size: 14px; }
+  .stat-row .s-val { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 18px; color: var(--accent-dark); }
+  .week-chart { display: flex; align-items: flex-end; gap: 6px; height: 80px; }
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .bar-bg { width: 100%; background: #C5CAE9; border-radius: 8px 8px 0 0; height: 60px; display: flex; align-items: flex-end; }
+  .bar-fill { width: 100%; border-radius: 8px 8px 0 0; background: linear-gradient(180deg, var(--accent) 0%, var(--accent-dark) 100%); transition: height .5s ease; }
+  .bar-day { font-size: 10px; color: var(--muted); }
+  .weak-list { display: flex; flex-direction: column; gap: 8px; }
+  .weak-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #E8EAF6; border-radius: 12px; }
+  .weak-item .w-sym { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 22px; color: var(--accent-dark); width: 44px; }
+  .weak-item .w-info { flex: 1; }
+  .weak-item .w-name { font-size: 14px; font-weight: 700; }
+  .weak-item .w-en { font-size: 12px; color: var(--muted); }
+  .weak-item .w-count { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 14px; color: var(--coral); background: #FFCDD2; border-radius: 8px; padding: 2px 8px; }
+
+  /* ELEMENT LIST */
+  #elemlist { background: var(--bg); }
+  .el-header { display: flex; align-items: center; padding: 56px 16px 16px; gap: 12px; }
+  .el-title { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 20px; flex: 1; }
+  .el-search { margin: 0 16px 12px; background: white; border-radius: 14px; padding: 12px 16px; border: 2px solid #C5CAE9; font-size: 15px; width: calc(100% - 32px); outline: none; font-family: 'Noto Sans JP', sans-serif; }
+  .el-grid { padding: 0 16px 32px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .el-card { background: white; border-radius: 12px; padding: 12px 8px; text-align: center; box-shadow: 0 2px 6px rgba(40,53,147,0.07); position: relative; }
+  .el-card .ec-num { font-size: 9px; color: var(--muted); }
+  .el-card .ec-sym { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 24px; color: var(--accent-dark); line-height: 1.1; }
+  .el-card .ec-name { font-size: 10px; font-weight: 700; margin-top: 2px; }
+  .el-card .ec-en { font-size: 9px; color: var(--muted); }
+  .el-card .ec-badge { position: absolute; top: 4px; right: 4px; font-size: 8px; border-radius: 5px; padding: 1px 4px; font-family: 'Nunito', sans-serif; font-weight: 700; }
+  .badge-weak { background: #FFEBEE; color: #C62828; }
+  .badge-ok   { background: #E8F5E9; color: #2E7D32; }
+  .badge-new  { background: #E8EAF6; color: #283593; }
+
+  /* group color dots */
+  .el-card.g-alkali    { border-top: 3px solid #EF5350; }
+  .el-card.g-alkaline  { border-top: 3px solid #FFA726; }
+  .el-card.g-transition{ border-top: 3px solid #FDD835; }
+  .el-card.g-post      { border-top: 3px solid #66BB6A; }
+  .el-card.g-metalloid { border-top: 3px solid #26A69A; }
+  .el-card.g-nonmetal  { border-top: 3px solid #42A5F5; }
+  .el-card.g-noble     { border-top: 3px solid #AB47BC; }
+  .el-card.g-lanthanide{ border-top: 3px solid #EC407A; }
+  .el-card.g-actinide  { border-top: 3px solid #8D6E63; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 16px 12px; }
+  .legend-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--muted); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  .toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(20px); background: #0A0E2E; color: white; border-radius: 12px; padding: 12px 24px; font-size: 14px; opacity: 0; transition: all .3s; pointer-events: none; z-index: 999; white-space: nowrap; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div id="home" class="screen active">
+  <div class="home-top">
+    <div class="app-icon">🔬</div>
+    <h1>元素記号トレーニング</h1>
+    <p>高校生レベル · 全<span id="total-elems">0</span>元素</p>
+  </div>
+  <div class="home-cards">
+    <div class="stat-mini"><div class="num" id="h-today-ans">0</div><div class="label">今日の回答数</div></div>
+    <div class="stat-mini"><div class="num" id="h-today-acc">-</div><div class="label">今日の正答率</div></div>
+    <div class="stat-mini"><div class="num" id="h-weak-cnt">0</div><div class="label">苦手元素</div></div>
+    <div class="stat-mini"><div class="num" id="h-streak">0</div><div class="label">連続学習日数</div></div>
+  </div>
+  <div class="home-btns">
+    <button class="btn-main btn-train" onclick="startQuiz('all')">🎯 通常テスト（全118元素）</button>
+    <button class="btn-main btn-weak"  onclick="startQuiz('weak')">🔥 苦手元素テスト</button>
+    <button class="btn-main btn-stats" onclick="showScreen('stats')">📊 学習記録</button>
+    <button class="btn-main btn-list"  onclick="showScreen('elemlist')">🧪 元素一覧</button>
+  </div>
+</div>
+
+<div id="quiz" class="screen">
+  <div class="quiz-header">
+    <button class="back-btn" onclick="showScreen('home')">←</button>
+    <div class="quiz-title" id="quiz-mode-label">通常テスト</div>
+    <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:var(--accent-dark);" id="quiz-score-live">0/0</div>
+  </div>
+  <div class="quiz-prog-wrap">
+    <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="prog-label" id="prog-label">0 / 10</div>
+  </div>
+  <div class="card-wrap">
+    <div class="element-card">
+      <div class="q-label" id="q-label">この元素記号の名前は？</div>
+      <div id="quiz-display"></div>
+      <div class="element-sub" id="quiz-sub"></div>
+    </div>
+  </div>
+  <div class="choices" id="choices"></div>
+</div>
+
+<div id="result" class="screen">
+  <div class="result-card">
+    <div class="result-emoji" id="res-emoji">🎉</div>
+    <div class="result-title" id="res-title">お疲れ様！</div>
+    <div class="result-score" id="res-score">8/10</div>
+    <div class="result-sub" id="res-sub">正答率 80%</div>
+    <div class="result-btns">
+      <button class="btn-sm btn-again" onclick="retryQuiz()">🔄 もう一度</button>
+      <button class="btn-sm btn-home2" onclick="showScreen('home')">🏠 ホームへ</button>
+    </div>
+  </div>
+</div>
+
+<div id="stats" class="screen">
+  <div class="stats-header">
+    <button class="back-btn" onclick="showScreen('home')">←</button>
+    <div class="stats-title">学習記録</div>
+  </div>
+  <div class="stats-body">
+    <div class="stats-section">
+      <h3>今日</h3>
+      <div class="stat-row"><span class="s-label">⏱ 利用時間</span><span class="s-val" id="s-time">0分</span></div>
+      <div class="stat-row"><span class="s-label">📝 回答数</span><span class="s-val" id="s-ans">0問</span></div>
+      <div class="stat-row"><span class="s-label">✅ 正解数</span><span class="s-val" id="s-correct">0問</span></div>
+      <div class="stat-row"><span class="s-label">🎯 正答率</span><span class="s-val" id="s-acc">-%</span></div>
+    </div>
+    <div class="stats-section"><h3>今週の回答数</h3><div class="week-chart" id="week-chart"></div></div>
+    <div class="stats-section">
+      <h3>累計</h3>
+      <div class="stat-row"><span class="s-label">📅 学習日数</span><span class="s-val" id="s-days">0日</span></div>
+      <div class="stat-row"><span class="s-label">📝 総回答数</span><span class="s-val" id="s-total">0問</span></div>
+      <div class="stat-row"><span class="s-label">🏆 最高正答率</span><span class="s-val" id="s-best">-%</span></div>
+    </div>
+    <div class="stats-section"><h3>苦手元素 TOP5</h3><div class="weak-list" id="weak-list"></div></div>
+  </div>
+</div>
+
+<div id="elemlist" class="screen">
+  <div class="el-header">
+    <button class="back-btn" onclick="showScreen('home')">←</button>
+    <div class="el-title">元素一覧（118元素）</div>
+  </div>
+  <input class="el-search" id="el-search" type="text" placeholder="🔍 記号・名前・番号で検索..." oninput="filterElems()" />
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#EF5350"></div>アルカリ</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#FFA726"></div>アルカリ土</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#FDD835"></div>遷移金属</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#66BB6A"></div>典型金属</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#26A69A"></div>半金属</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#42A5F5"></div>非金属</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#AB47BC"></div>希ガス</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#EC407A"></div>ランタノイド</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#8D6E63"></div>アクチノイド</div>
+  </div>
+  <div class="el-grid" id="el-grid"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const ELEMENTS = [
+  {num:1,sym:"H",jp:"水素",en:"Hydrogen",g:"nonmetal"},
+  {num:2,sym:"He",jp:"ヘリウム",en:"Helium",g:"noble"},
+  {num:3,sym:"Li",jp:"リチウム",en:"Lithium",g:"alkali"},
+  {num:4,sym:"Be",jp:"ベリリウム",en:"Beryllium",g:"alkaline"},
+  {num:5,sym:"B",jp:"ホウ素",en:"Boron",g:"metalloid"},
+  {num:6,sym:"C",jp:"炭素",en:"Carbon",g:"nonmetal"},
+  {num:7,sym:"N",jp:"窒素",en:"Nitrogen",g:"nonmetal"},
+  {num:8,sym:"O",jp:"酸素",en:"Oxygen",g:"nonmetal"},
+  {num:9,sym:"F",jp:"フッ素",en:"Fluorine",g:"nonmetal"},
+  {num:10,sym:"Ne",jp:"ネオン",en:"Neon",g:"noble"},
+  {num:11,sym:"Na",jp:"ナトリウム",en:"Sodium",g:"alkali"},
+  {num:12,sym:"Mg",jp:"マグネシウム",en:"Magnesium",g:"alkaline"},
+  {num:13,sym:"Al",jp:"アルミニウム",en:"Aluminum",g:"post"},
+  {num:14,sym:"Si",jp:"ケイ素",en:"Silicon",g:"metalloid"},
+  {num:15,sym:"P",jp:"リン",en:"Phosphorus",g:"nonmetal"},
+  {num:16,sym:"S",jp:"硫黄",en:"Sulfur",g:"nonmetal"},
+  {num:17,sym:"Cl",jp:"塩素",en:"Chlorine",g:"nonmetal"},
+  {num:18,sym:"Ar",jp:"アルゴン",en:"Argon",g:"noble"},
+  {num:19,sym:"K",jp:"カリウム",en:"Potassium",g:"alkali"},
+  {num:20,sym:"Ca",jp:"カルシウム",en:"Calcium",g:"alkaline"},
+  {num:21,sym:"Sc",jp:"スカンジウム",en:"Scandium",g:"transition"},
+  {num:22,sym:"Ti",jp:"チタン",en:"Titanium",g:"transition"},
+  {num:23,sym:"V",jp:"バナジウム",en:"Vanadium",g:"transition"},
+  {num:24,sym:"Cr",jp:"クロム",en:"Chromium",g:"transition"},
+  {num:25,sym:"Mn",jp:"マンガン",en:"Manganese",g:"transition"},
+  {num:26,sym:"Fe",jp:"鉄",en:"Iron",g:"transition"},
+  {num:27,sym:"Co",jp:"コバルト",en:"Cobalt",g:"transition"},
+  {num:28,sym:"Ni",jp:"ニッケル",en:"Nickel",g:"transition"},
+  {num:29,sym:"Cu",jp:"銅",en:"Copper",g:"transition"},
+  {num:30,sym:"Zn",jp:"亜鉛",en:"Zinc",g:"transition"},
+  {num:31,sym:"Ga",jp:"ガリウム",en:"Gallium",g:"post"},
+  {num:32,sym:"Ge",jp:"ゲルマニウム",en:"Germanium",g:"metalloid"},
+  {num:33,sym:"As",jp:"ヒ素",en:"Arsenic",g:"metalloid"},
+  {num:34,sym:"Se",jp:"セレン",en:"Selenium",g:"nonmetal"},
+  {num:35,sym:"Br",jp:"臭素",en:"Bromine",g:"nonmetal"},
+  {num:36,sym:"Kr",jp:"クリプトン",en:"Krypton",g:"noble"},
+  {num:37,sym:"Rb",jp:"ルビジウム",en:"Rubidium",g:"alkali"},
+  {num:38,sym:"Sr",jp:"ストロンチウム",en:"Strontium",g:"alkaline"},
+  {num:39,sym:"Y",jp:"イットリウム",en:"Yttrium",g:"transition"},
+  {num:40,sym:"Zr",jp:"ジルコニウム",en:"Zirconium",g:"transition"},
+  {num:41,sym:"Nb",jp:"ニオブ",en:"Niobium",g:"transition"},
+  {num:42,sym:"Mo",jp:"モリブデン",en:"Molybdenum",g:"transition"},
+  {num:43,sym:"Tc",jp:"テクネチウム",en:"Technetium",g:"transition"},
+  {num:44,sym:"Ru",jp:"ルテニウム",en:"Ruthenium",g:"transition"},
+  {num:45,sym:"Rh",jp:"ロジウム",en:"Rhodium",g:"transition"},
+  {num:46,sym:"Pd",jp:"パラジウム",en:"Palladium",g:"transition"},
+  {num:47,sym:"Ag",jp:"銀",en:"Silver",g:"transition"},
+  {num:48,sym:"Cd",jp:"カドミウム",en:"Cadmium",g:"transition"},
+  {num:49,sym:"In",jp:"インジウム",en:"Indium",g:"post"},
+  {num:50,sym:"Sn",jp:"スズ",en:"Tin",g:"post"},
+  {num:51,sym:"Sb",jp:"アンチモン",en:"Antimony",g:"metalloid"},
+  {num:52,sym:"Te",jp:"テルル",en:"Tellurium",g:"metalloid"},
+  {num:53,sym:"I",jp:"ヨウ素",en:"Iodine",g:"nonmetal"},
+  {num:54,sym:"Xe",jp:"キセノン",en:"Xenon",g:"noble"},
+  {num:55,sym:"Cs",jp:"セシウム",en:"Cesium",g:"alkali"},
+  {num:56,sym:"Ba",jp:"バリウム",en:"Barium",g:"alkaline"},
+  {num:57,sym:"La",jp:"ランタン",en:"Lanthanum",g:"lanthanide"},
+  {num:58,sym:"Ce",jp:"セリウム",en:"Cerium",g:"lanthanide"},
+  {num:59,sym:"Pr",jp:"プラセオジム",en:"Praseodymium",g:"lanthanide"},
+  {num:60,sym:"Nd",jp:"ネオジム",en:"Neodymium",g:"lanthanide"},
+  {num:61,sym:"Pm",jp:"プロメチウム",en:"Promethium",g:"lanthanide"},
+  {num:62,sym:"Sm",jp:"サマリウム",en:"Samarium",g:"lanthanide"},
+  {num:63,sym:"Eu",jp:"ユウロピウム",en:"Europium",g:"lanthanide"},
+  {num:64,sym:"Gd",jp:"ガドリニウム",en:"Gadolinium",g:"lanthanide"},
+  {num:65,sym:"Tb",jp:"テルビウム",en:"Terbium",g:"lanthanide"},
+  {num:66,sym:"Dy",jp:"ジスプロシウム",en:"Dysprosium",g:"lanthanide"},
+  {num:67,sym:"Ho",jp:"ホルミウム",en:"Holmium",g:"lanthanide"},
+  {num:68,sym:"Er",jp:"エルビウム",en:"Erbium",g:"lanthanide"},
+  {num:69,sym:"Tm",jp:"ツリウム",en:"Thulium",g:"lanthanide"},
+  {num:70,sym:"Yb",jp:"イッテルビウム",en:"Ytterbium",g:"lanthanide"},
+  {num:71,sym:"Lu",jp:"ルテチウム",en:"Lutetium",g:"lanthanide"},
+  {num:72,sym:"Hf",jp:"ハフニウム",en:"Hafnium",g:"transition"},
+  {num:73,sym:"Ta",jp:"タンタル",en:"Tantalum",g:"transition"},
+  {num:74,sym:"W",jp:"タングステン",en:"Tungsten",g:"transition"},
+  {num:75,sym:"Re",jp:"レニウム",en:"Rhenium",g:"transition"},
+  {num:76,sym:"Os",jp:"オスミウム",en:"Osmium",g:"transition"},
+  {num:77,sym:"Ir",jp:"イリジウム",en:"Iridium",g:"transition"},
+  {num:78,sym:"Pt",jp:"白金",en:"Platinum",g:"transition"},
+  {num:79,sym:"Au",jp:"金",en:"Gold",g:"transition"},
+  {num:80,sym:"Hg",jp:"水銀",en:"Mercury",g:"transition"},
+  {num:81,sym:"Tl",jp:"タリウム",en:"Thallium",g:"post"},
+  {num:82,sym:"Pb",jp:"鉛",en:"Lead",g:"post"},
+  {num:83,sym:"Bi",jp:"ビスマス",en:"Bismuth",g:"post"},
+  {num:84,sym:"Po",jp:"ポロニウム",en:"Polonium",g:"post"},
+  {num:85,sym:"At",jp:"アスタチン",en:"Astatine",g:"nonmetal"},
+  {num:86,sym:"Rn",jp:"ラドン",en:"Radon",g:"noble"},
+  {num:87,sym:"Fr",jp:"フランシウム",en:"Francium",g:"alkali"},
+  {num:88,sym:"Ra",jp:"ラジウム",en:"Radium",g:"alkaline"},
+  {num:89,sym:"Ac",jp:"アクチニウム",en:"Actinium",g:"actinide"},
+  {num:90,sym:"Th",jp:"トリウム",en:"Thorium",g:"actinide"},
+  {num:91,sym:"Pa",jp:"プロトアクチニウム",en:"Protactinium",g:"actinide"},
+  {num:92,sym:"U",jp:"ウラン",en:"Uranium",g:"actinide"},
+  {num:93,sym:"Np",jp:"ネプツニウム",en:"Neptunium",g:"actinide"},
+  {num:94,sym:"Pu",jp:"プルトニウム",en:"Plutonium",g:"actinide"},
+  {num:95,sym:"Am",jp:"アメリシウム",en:"Americium",g:"actinide"},
+  {num:96,sym:"Cm",jp:"キュリウム",en:"Curium",g:"actinide"},
+  {num:97,sym:"Bk",jp:"バークリウム",en:"Berkelium",g:"actinide"},
+  {num:98,sym:"Cf",jp:"カリホルニウム",en:"Californium",g:"actinide"},
+  {num:99,sym:"Es",jp:"アインスタイニウム",en:"Einsteinium",g:"actinide"},
+  {num:100,sym:"Fm",jp:"フェルミウム",en:"Fermium",g:"actinide"},
+  {num:101,sym:"Md",jp:"メンデレビウム",en:"Mendelevium",g:"actinide"},
+  {num:102,sym:"No",jp:"ノーベリウム",en:"Nobelium",g:"actinide"},
+  {num:103,sym:"Lr",jp:"ローレンシウム",en:"Lawrencium",g:"actinide"},
+  {num:104,sym:"Rf",jp:"ラザホージウム",en:"Rutherfordium",g:"transition"},
+  {num:105,sym:"Db",jp:"ドブニウム",en:"Dubnium",g:"transition"},
+  {num:106,sym:"Sg",jp:"シーボーギウム",en:"Seaborgium",g:"transition"},
+  {num:107,sym:"Bh",jp:"ボーリウム",en:"Bohrium",g:"transition"},
+  {num:108,sym:"Hs",jp:"ハッシウム",en:"Hassium",g:"transition"},
+  {num:109,sym:"Mt",jp:"マイトネリウム",en:"Meitnerium",g:"transition"},
+  {num:110,sym:"Ds",jp:"ダームスタチウム",en:"Darmstadtium",g:"transition"},
+  {num:111,sym:"Rg",jp:"レントゲニウム",en:"Roentgenium",g:"transition"},
+  {num:112,sym:"Cn",jp:"コペルニシウム",en:"Copernicium",g:"transition"},
+  {num:113,sym:"Nh",jp:"ニホニウム",en:"Nihonium",g:"post"},
+  {num:114,sym:"Fl",jp:"フレロビウム",en:"Flerovium",g:"post"},
+  {num:115,sym:"Mc",jp:"モスコビウム",en:"Moscovium",g:"post"},
+  {num:116,sym:"Lv",jp:"リバモリウム",en:"Livermorium",g:"post"},
+  {num:117,sym:"Ts",jp:"テネシン",en:"Tennessine",g:"nonmetal"},
+  {num:118,sym:"Og",jp:"オガネソン",en:"Oganesson",g:"noble"},
+];
+
+const GROUP_CLASS = {alkali:"g-alkali",alkaline:"g-alkaline",transition:"g-transition",post:"g-post",metalloid:"g-metalloid",nonmetal:"g-nonmetal",noble:"g-noble",lanthanide:"g-lanthanide",actinide:"g-actinide"};
+const GROUP_JP = {alkali:"アルカリ金属",alkaline:"アルカリ土類",transition:"遷移金属",post:"典型金属",metalloid:"半金属",nonmetal:"非金属",noble:"希ガス",lanthanide:"ランタノイド",actinide:"アクチノイド"};
+
+const STORE_KEY = 'element_app_h_data';
+function loadData() { try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch { return {}; } }
+function saveData(d) { localStorage.setItem(STORE_KEY, JSON.stringify(d)); }
+function todayKey() { return new Date().toISOString().slice(0,10); }
+function getData() {
+  const d = loadData();
+  if (!d.days) d.days = {};
+  if (!d.mistakes) d.mistakes = {};
+  if (!d.totalAns) d.totalAns = 0;
+  if (!d.totalCorrect) d.totalCorrect = 0;
+  if (!d.bestAcc) d.bestAcc = 0;
+  if (!d.streak) d.streak = 0;
+  if (!d.lastDate) d.lastDate = '';
+  const tk = todayKey();
+  if (!d.days[tk]) d.days[tk] = {ans:0,correct:0,time:0};
+  return d;
+}
+setInterval(() => { const d=getData(); d.days[todayKey()].time=(d.days[todayKey()].time||0)+1; saveData(d); }, 60000);
+function updateStreak() {
+  const d=getData(), tk=todayKey();
+  if (d.lastDate===tk) return;
+  const yesterday=new Date(); yesterday.setDate(yesterday.getDate()-1);
+  const yk=yesterday.toISOString().slice(0,10);
+  if (d.lastDate===yk) d.streak=(d.streak||0)+1;
+  else if (d.lastDate!==tk) d.streak=1;
+  d.lastDate=tk; saveData(d);
+}
+updateStreak();
+
+let quizElems=[], quizIdx=0, quizCorrect=0, quizMode='all', lastQuizMode='all', quizType='sym2name';
+
+function shuffle(arr) { const a=[...arr]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a; }
+
+function startQuiz(mode) {
+  quizMode = mode;
+  const d = getData();
+  let pool;
+  if (mode === 'weak') {
+    pool = ELEMENTS.filter(e => (d.mistakes[e.sym]||0) >= 2);
+    if (pool.length < 4) { showToast('苦手元素が少ないです。もっと練習してね！'); return; }
+  } else { pool = [...ELEMENTS]; }
+  quizElems = shuffle(pool).slice(0, Math.min(10, pool.length));
+  quizIdx = 0; quizCorrect = 0;
+  document.getElementById('quiz-mode-label').textContent = mode==='weak' ? '苦手元素テスト' : '通常テスト';
+  showScreen('quiz'); renderQuestion();
+}
+function retryQuiz() { startQuiz(lastQuizMode); }
+
+function renderQuestion() {
+  const total = quizElems.length;
+  document.getElementById('prog-fill').style.width = ((quizIdx/total)*100)+'%';
+  document.getElementById('prog-label').textContent = quizIdx+' / '+total;
+  document.getElementById('quiz-score-live').textContent = quizCorrect+'/'+total;
+  const e = quizElems[quizIdx];
+  quizType = Math.random() < 0.5 ? 'sym2name' : 'name2sym';
+  const display = document.getElementById('quiz-display');
+  const sub = document.getElementById('quiz-sub');
+  const qLabel = document.getElementById('q-label');
+  if (quizType === 'sym2name') {
+    qLabel.textContent = 'この元素記号の名前は？';
+    display.innerHTML = `<div class="element-symbol">${e.sym}</div>`;
+    sub.textContent = `原子番号 ${e.num} · ${GROUP_JP[e.g]}`;
+  } else {
+    qLabel.textContent = 'この元素の記号は？';
+    display.innerHTML = `<div class="element-name-big">${e.jp}</div>`;
+    sub.textContent = `${e.en} · ${GROUP_JP[e.g]}`;
+  }
+  const wrongs = shuffle(ELEMENTS.filter(x => x.sym !== e.sym)).slice(0, 3);
+  const opts = shuffle([e, ...wrongs]);
+  const choicesEl = document.getElementById('choices');
+  choicesEl.innerHTML = '';
+  opts.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.textContent = quizType === 'sym2name' ? opt.jp : opt.sym;
+    btn.onclick = () => selectAnswer(btn, opt.sym === e.sym, e.sym, e);
+    choicesEl.appendChild(btn);
+  });
+}
+
+function selectAnswer(btn, isCorrect, symKey, elem) {
+  document.querySelectorAll('.choice-btn').forEach(b => b.onclick = null);
+  const d = getData(), tk = todayKey();
+  d.days[tk].ans++; d.totalAns++;
+  if (isCorrect) {
+    btn.classList.add('correct'); quizCorrect++; d.days[tk].correct++; d.totalCorrect++;
+  } else {
+    btn.classList.add('wrong'); d.mistakes[symKey] = (d.mistakes[symKey]||0) + 1;
+    const correctText = quizType === 'sym2name' ? elem.jp : elem.sym;
+    document.querySelectorAll('.choice-btn').forEach(b => { if (b.textContent === correctText) b.classList.add('reveal'); });
+  }
+  saveData(d);
+  setTimeout(() => { quizIdx++; if (quizIdx >= quizElems.length) showResult(); else renderQuestion(); }, 900);
+}
+
+function showResult() {
+  lastQuizMode = quizMode;
+  const total = quizElems.length, pct = Math.round((quizCorrect/total)*100);
+  const d = getData(); if (pct > d.bestAcc) { d.bestAcc = pct; saveData(d); }
+  let emoji='🎉', title='パーフェクト！';
+  if (pct < 50) { emoji='😢'; title='もう少し頑張ろう！'; }
+  else if (pct < 70) { emoji='😊'; title='もう一息！'; }
+  else if (pct < 90) { emoji='👍'; title='よくできました！'; }
+  document.getElementById('res-emoji').textContent = emoji;
+  document.getElementById('res-title').textContent = title;
+  document.getElementById('res-score').textContent = quizCorrect+'/'+total;
+  document.getElementById('res-sub').textContent = '正答率 '+pct+'%';
+  showScreen('result'); refreshHome();
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id==='stats') renderStats();
+  if (id==='elemlist') renderElemList();
+  if (id==='home') refreshHome();
+  document.getElementById(id).scrollTop = 0;
+}
+
+function refreshHome() {
+  const d=getData(), tk=todayKey(), day=d.days[tk]||{ans:0,correct:0,time:0};
+  document.getElementById('h-today-ans').textContent = day.ans;
+  document.getElementById('h-today-acc').textContent = day.ans>0 ? Math.round((day.correct/day.ans)*100)+'%' : '-';
+  document.getElementById('h-weak-cnt').textContent = Object.values(d.mistakes||{}).filter(v=>v>=2).length;
+  document.getElementById('h-streak').textContent = (d.streak||0)+'日';
+  document.getElementById('total-elems').textContent = ELEMENTS.length;
+}
+
+function renderStats() {
+  const d=getData(), tk=todayKey(), day=d.days[tk]||{ans:0,correct:0,time:0};
+  document.getElementById('s-time').textContent = (day.time||0)+'分';
+  document.getElementById('s-ans').textContent = day.ans+'問';
+  document.getElementById('s-correct').textContent = (day.correct||0)+'問';
+  document.getElementById('s-acc').textContent = day.ans>0 ? Math.round((day.correct/day.ans)*100)+'%' : '-%';
+  document.getElementById('s-days').textContent = Object.keys(d.days||{}).length+'日';
+  document.getElementById('s-total').textContent = (d.totalAns||0)+'問';
+  document.getElementById('s-best').textContent = (d.bestAcc||0)+'%';
+  const chart=document.getElementById('week-chart'); chart.innerHTML='';
+  const days=['日','月','火','水','木','金','土'], today=new Date();
+  let maxAns=1; const weekData=[];
+  for(let i=6;i>=0;i--){ const dt=new Date(today); dt.setDate(dt.getDate()-i); const key=dt.toISOString().slice(0,10); const ans=(d.days[key]||{}).ans||0; if(ans>maxAns)maxAns=ans; weekData.push({day:days[dt.getDay()],ans}); }
+  weekData.forEach(item=>{ const col=document.createElement('div'); col.className='bar-col'; const bg=document.createElement('div'); bg.className='bar-bg'; const fill=document.createElement('div'); fill.className='bar-fill'; fill.style.height=Math.round((item.ans/maxAns)*100)+'%'; bg.appendChild(fill); const label=document.createElement('div'); label.className='bar-day'; label.textContent=item.day; col.appendChild(bg); col.appendChild(label); chart.appendChild(col); });
+  const wl=document.getElementById('weak-list'); wl.innerHTML='';
+  const sorted=Object.entries(d.mistakes||{}).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  if (sorted.length===0) { wl.innerHTML='<div style="color:var(--muted);font-size:14px;text-align:center;padding:8px">まだデータがありません</div>'; return; }
+  sorted.forEach(([sym,cnt])=>{ const e=ELEMENTS.find(x=>x.sym===sym); if(!e)return; const item=document.createElement('div'); item.className='weak-item'; item.innerHTML=`<div class="w-sym">${e.sym}</div><div class="w-info"><div class="w-name">${e.jp}</div><div class="w-en">${e.en}</div></div><div class="w-count">${cnt}回ミス</div>`; wl.appendChild(item); });
+}
+
+function renderElemList(filter='') {
+  const d=getData(), grid=document.getElementById('el-grid'); grid.innerHTML='';
+  const q=filter.toLowerCase();
+  ELEMENTS.filter(e=>!q||e.sym.toLowerCase().includes(q)||e.jp.includes(q)||e.en.toLowerCase().includes(q)||String(e.num).includes(q)).forEach(e=>{
+    const mis=d.mistakes[e.sym]||0;
+    const card=document.createElement('div'); card.className='el-card '+(GROUP_CLASS[e.g]||'');
+    let badgeClass='badge-new', badgeText='未';
+    if (mis>=2){badgeClass='badge-weak';badgeText='苦手';}
+    else if (mis===1){badgeClass='badge-weak';badgeText='注意';}
+    else if (mis===0&&d.totalAns>0){badgeClass='badge-ok';badgeText='OK';}
+    card.innerHTML=`<div class="ec-num">${e.num}</div><div class="ec-sym">${e.sym}</div><div class="ec-name">${e.jp}</div><div class="ec-en">${e.en}</div><div class="ec-badge ${badgeClass}">${badgeText}</div>`;
+    grid.appendChild(card);
+  });
+}
+
+function filterElems() { renderElemList(document.getElementById('el-search').value); }
+function showToast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
+
+refreshHome();
+</script>
+</body>
+</html>
